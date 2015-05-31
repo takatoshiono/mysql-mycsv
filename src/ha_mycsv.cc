@@ -209,6 +209,7 @@ ha_mycsv::ha_mycsv(handlerton *hton, TABLE_SHARE *table_arg)
 */
 
 static const char *ha_mycsv_exts[] = {
+  ".csv",
   NullS
 };
 
