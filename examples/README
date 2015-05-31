@@ -1,0 +1,35 @@
+The examples in this directory are templates for adding new code to
+the MySQL database server, and accompany the book "Understanding MySQL
+Internals," by Sasha Pachev, published in 2007 by O’Reilly Media, Inc.
+
+The files include:
+
+  ha_csv-4.1.cc and ha_csv-4.1.h: Template for adding a storage engine
+  to MySQL version 4.1, discussed in Chapter 7 of Understanding MySQL
+  Internals
+
+  ha_csv-5.1.cc and ha_csv-5.1.h: Template for adding a storage engine
+  to MySQL version 5.1, discussed in Chapter 7 of Understanding MySQL
+  Internals
+
+  Makefile-5.1.am: input to 5.1 Makefile for adding the storage engine
+
+This book and this code are here to help you get your job done. In
+general, you may use the code in the book in your programs and
+documentation. You do not need to contact us for permission unless
+you’re reproducing a significant portion of the code. For example,
+writing a program that uses several chunks of code from this book does
+not require permission. Selling or distributing a CD-ROM of examples
+from O’Reilly books does require permission. Answering a question by
+citing this book and quoting example code does not require
+permission. Incorporating a significant amount of example code from
+this book into your product’s documentation does require permission.
+
+We appreciate, but do not require, attribution. An attribution usually
+includes the title, author, publisher, and ISBN. For example:
+"Understanding MySQL Internals, by Sasha Pachev. Copyright 2007
+O’Reilly Media, Inc., 978-0596009571."
+
+If you feel your use of code examples falls outside fair use or the
+permission given above, feel free to contact us at
+permissions@oreilly.com.

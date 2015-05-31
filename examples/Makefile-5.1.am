@@ -1,0 +1,28 @@
+#called from the top level Makefile
+
+MYSQLDATAdir =          $(localstatedir)
+MYSQLSHAREdir =         $(pkgdatadir)
+MYSQLBASEdir=           $(prefix)
+MYSQLLIBdir=            $(pkglibdir)
+INCLUDES =              -I$(top_srcdir)/include -I$(top_builddir)/include \
+			-I$(top_srcdir)/regex \
+			-I$(top_srcdir)/sql \
+                        -I$(srcdir)
+WRAPLIBS=
+
+LDADD =
+
+DEFS =                  @DEFS@
+
+noinst_HEADERS =	ha_csv.h
+
+
+EXTRA_LIBRARIES =	liboreillycsv.a
+noinst_LIBRARIES =	@plugin_oreilly_csv_static_target@
+liboreillycsv_a_CXXFLAGS =	$(AM_CFLAGS)
+liboreillycsv_a_CFLAGS =	$(AM_CFLAGS)
+liboreillycsv_a_SOURCES=	ha_csv.cc
+
+
+# Don't update the files from bitkeeper
+%::SCCS/s.%
