@@ -302,6 +302,13 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
     DBUG_RETURN(1);
   thr_lock_data_init(&share->lock,&lock,NULL);
 
+  // NOTE
+  // MYF (include/my_global.h) - Macros for converting *constants* to the right type
+  // MY_WME (include/my_sys.h) - Write message on error
+  file= (CSV_INFO*)my_malloc(sizeof(CSV_INFO), MYF(MY_WME));
+  if (!file)
+      return DEBUG_RETURN(1);
+
   DBUG_RETURN(0);
 }
 

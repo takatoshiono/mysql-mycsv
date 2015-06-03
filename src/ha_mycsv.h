@@ -52,6 +52,12 @@ public:
   }
 };
 
+struct CSV_INFO
+{
+  char filename[FN_REFLEN+1];
+  int fd;
+};
+
 /** @brief
   Class definition for the storage engine
 */
@@ -60,6 +66,9 @@ class ha_mycsv: public handler
   THR_LOCK_DATA lock;      ///< MySQL lock
   Example_share *share;    ///< Shared lock info
   Example_share *get_share(); ///< Get the share
+
+protected:
+  CSV_INFO* file;
 
 public:
   ha_mycsv(handlerton *hton, TABLE_SHARE *table_arg);
