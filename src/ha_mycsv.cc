@@ -309,6 +309,22 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
   if (!file)
       return DEBUG_RETURN(1);
 
+  // fn_format (mysys/mf_format.c) - Formats a filename
+  // see also include/my_sys.h
+  fn_format(file->filename, name, "", ".csv", MY_REPLACE_EXT | MY_UNPACK_FILENAME);
+
+  // my_open (mysys/my_open.c) - Open a file
+  file->fd= my_open(file->filename, mode, MYF(0));
+  if (file->fd < 0)
+  {
+      // my_error (mysys/my_error.c) - Fill in and print a previously registered error message
+      int error= my_errno();
+      close();
+      return error;
+  }
+
+  position= 0;
+
   DBUG_RETURN(0);
 }
 
@@ -331,6 +347,9 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
 int ha_mycsv::close(void)
 {
   DBUG_ENTER("ha_mycsv::close");
+
+  // TODO 実装する
+
   DBUG_RETURN(0);
 }
 

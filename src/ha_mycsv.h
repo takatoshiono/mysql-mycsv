@@ -70,6 +70,9 @@ class ha_mycsv: public handler
 protected:
   CSV_INFO* file;
 
+  /* Table scan cursor. */
+  my_off position;
+
 public:
   ha_mycsv(handlerton *hton, TABLE_SHARE *table_arg);
   ~ha_mycsv()
