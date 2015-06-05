@@ -19,9 +19,9 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/zlib
                     ${CMAKE_SOURCE_DIR}/extra/yassl/include
                     ${CMAKE_SOURCE_DIR}/unittest/mytap)
 
-SET(TESTS example)
+SET(TESTS example ha_mycsv)
 FOREACH(test ${TESTS})
-  ADD_EXECUTABLE(${test}-t ${test}-t.c)
+  ADD_EXECUTABLE(${test}-t ${test}-t.cc)
   TARGET_LINK_LIBRARIES(${test}-t mytap)
   ADD_TEST(${test} ${test}-t)
 ENDFOREACH()
