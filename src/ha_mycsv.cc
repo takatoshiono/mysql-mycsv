@@ -609,6 +609,8 @@ int ha_mycsv::rnd_next(uchar *buf)
 
 int ha_mycsv::fetch_line(uchar* buf)
 {
+  DBUG_ENTER("ha_mycsv::fetch_line");
+
   //my_off_t cur_pos = pos;
 
   /* 
