@@ -36,6 +36,8 @@
 #include "handler.h"                     /* handler */
 #include "my_base.h"                     /* ha_rows */
 
+#define CSV_READ_BLOCK_SIZE 512
+
 /** @brief
   Example_share is a class that will be shared among all open handlers.
   This mycsv implements the minimum of what you will probably need.
@@ -71,13 +73,15 @@ protected:
   CSV_INFO* file;
 
   /* Table scan cursor. */
-  my_off position;
+  my_off_t pos;
 
 public:
   ha_mycsv(handlerton *hton, TABLE_SHARE *table_arg);
   ~ha_mycsv()
   {
   }
+
+  int fetch_line(uchar* buf);
 
   /** @brief
     The name that will be used for display purposes.

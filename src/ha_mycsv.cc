@@ -307,7 +307,7 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
   // MY_WME (include/my_sys.h) - Write message on error
   file= (CSV_INFO*)my_malloc(sizeof(CSV_INFO), MYF(MY_WME));
   if (!file)
-      return DEBUG_RETURN(1);
+      DBUG_RETURN(1);
 
   // fn_format (mysys/mf_format.c) - Formats a filename
   // see also include/my_sys.h
@@ -318,12 +318,12 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
   if (file->fd < 0)
   {
       // my_error (mysys/my_error.c) - Fill in and print a previously registered error message
-      int error= my_errno();
+      int error= my_errno;
       close();
-      return error;
+      DBUG_RETURN(error);
   }
 
-  position= 0;
+  pos= 0;
 
   DBUG_RETURN(0);
 }
@@ -592,15 +592,48 @@ int ha_mycsv::rnd_end()
 */
 int ha_mycsv::rnd_next(uchar *buf)
 {
-  int rc;
   DBUG_ENTER("ha_mycsv::rnd_next");
   MYSQL_READ_ROW_START(table_share->db.str, table_share->table_name.str,
                        TRUE);
-  rc= HA_ERR_END_OF_FILE;
+
+  ha_statistic_increment(&SSV::ha_read_rnd_next_count);
+
+  int rc = fetch_line(buf);
+
+  //if (!rc)
+  //  records++;
+
   MYSQL_READ_ROW_DONE(rc);
   DBUG_RETURN(rc);
 }
 
+int ha_mycsv::fetch_line(uchar* buf)
+{
+  //my_off_t cur_pos = pos;
+
+  /* 
+     We will use this to iterate through the array of 
+     table field pointers to store the parsed data in the right
+     place and the right format.
+   */  
+  Field** field = table->field;
+
+  // TODO あとで
+  //char buf[CSV_READ_BLOCK_SIZE];
+
+  //uint bytes_read = my_pread(file->fd, buf, sizeof(buf), cur_pos, MYF(MY_WME));
+  //if (bytes_read == MY_FILE_ERROR)
+  //    return HA_ERR_END_OF_FILE;
+  //if (!bytes_read)
+  //    return HA_ERR_END_OF_FILE;
+
+  for (; *field; field++)
+  {
+    (*field)->set_default();
+  }
+
+  DBUG_RETURN(0);
+}
 
 /**
   @brief
