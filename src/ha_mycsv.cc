@@ -566,6 +566,10 @@ int ha_mycsv::index_last(uchar *buf)
 int ha_mycsv::rnd_init(bool scan)
 {
   DBUG_ENTER("ha_mycsv::rnd_init");
+
+  pos= 0;
+  records= 0;
+
   DBUG_RETURN(0);
 }
 
