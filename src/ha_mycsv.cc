@@ -352,8 +352,8 @@ int ha_mycsv::close(void)
   if (file)
   {
       if (file->fd >= 0)
-        my_close($file->fd, MYF(0));
-      my_free((gptr)file, MYF(0));
+        my_close(file->fd, MYF(0));
+      my_free(file);
       file= NULL;
   }
 
@@ -575,7 +575,7 @@ int ha_mycsv::rnd_init(bool scan)
   DBUG_ENTER("ha_mycsv::rnd_init");
 
   pos= 0;
-  records= 0;
+  stats.records= 0;
 
   DBUG_RETURN(0);
 }
@@ -604,15 +604,14 @@ int ha_mycsv::rnd_end()
 int ha_mycsv::rnd_next(uchar *buf)
 {
   DBUG_ENTER("ha_mycsv::rnd_next");
-  MYSQL_READ_ROW_START(table_share->db.str, table_share->table_name.str,
-                       TRUE);
+  MYSQL_READ_ROW_START(table_share->db.str, table_share->table_name.str, TRUE);
 
   ha_statistic_increment(&SSV::ha_read_rnd_next_count);
 
   int rc = fetch_line(buf);
 
-  //if (!rc)
-  //  records++;
+  if (!rc)
+    stats.records++;
 
   MYSQL_READ_ROW_DONE(rc);
   DBUG_RETURN(rc);
@@ -645,7 +644,8 @@ int ha_mycsv::fetch_line(uchar* buf)
     (*field)->set_default();
   }
 
-  DBUG_RETURN(0);
+  DBUG_RETURN(HA_ERR_END_OF_FILE);
+  //DBUG_RETURN(0);
 }
 
 /**
