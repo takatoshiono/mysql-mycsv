@@ -349,6 +349,13 @@ int ha_mycsv::close(void)
   DBUG_ENTER("ha_mycsv::close");
 
   // TODO 実装する
+  if (file)
+  {
+      if (file->fd >= 0)
+        my_close($file->fd, MYF(0));
+      my_free((gptr)file, MYF(0));
+      file= NULL;
+  }
 
   DBUG_RETURN(0);
 }
