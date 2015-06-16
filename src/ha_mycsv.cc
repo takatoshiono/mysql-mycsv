@@ -617,11 +617,11 @@ int ha_mycsv::rnd_next(uchar *buf)
   DBUG_RETURN(rc);
 }
 
-int ha_mycsv::fetch_line(uchar* buf)
+int ha_mycsv::fetch_line(uchar *buf)
 {
   DBUG_ENTER("ha_mycsv::fetch_line");
 
-  //my_off_t cur_pos = pos;
+  my_off_t cur_pos= pos;
 
   /* 
      We will use this to iterate through the array of 
@@ -630,22 +630,89 @@ int ha_mycsv::fetch_line(uchar* buf)
    */  
   Field** field = table->field;
 
-  // TODO あとで
-  //char buf[CSV_READ_BLOCK_SIZE];
+  /* How many bytes we have seen so far in this line. */
+  int bytes_parsed= 0;
 
-  //uint bytes_read = my_pread(file->fd, buf, sizeof(buf), cur_pos, MYF(MY_WME));
-  //if (bytes_read == MY_FILE_ERROR)
-  //    return HA_ERR_END_OF_FILE;
-  //if (!bytes_read)
-  //    return HA_ERR_END_OF_FILE;
+  /* Loop breaker flag. */
+  int line_read_done= 0;
 
+  field_buf.length(0);
+
+  for (; !line_read_done; )
+  {
+    uchar linebuf[CSV_READ_BLOCK_SIZE];
+
+    size_t bytes_read= my_pread(file->fd, linebuf, sizeof(linebuf), cur_pos, MYF(MY_WME));
+
+    if (bytes_read == MY_FILE_ERROR)
+        DBUG_RETURN(HA_ERR_END_OF_FILE);
+    if (!bytes_read)
+        DBUG_RETURN(HA_ERR_END_OF_FILE);
+
+    uchar* p= linebuf;
+    uchar* buf_end= linebuf + bytes_read;
+
+    for (; p < buf_end; )
+    {
+      uchar c= *p;
+      int end_of_field= 0;
+      int end_of_line= 0;
+
+      switch (c)
+      {
+        case ',':
+          end_of_field= 1;
+          break;
+
+        case '\r':
+        case '\n':
+          end_of_line= 1;
+          end_of_field= 1;
+          break;
+
+        default:
+          field_buf.append(c);
+          break;
+      }
+
+      if (end_of_field && *field) 
+      {
+        (*field)->store(field_buf.ptr(), field_buf.length(), field_buf.charset(), CHECK_FIELD_WARN);
+        field++;
+        field_buf.length(0);
+      }
+
+      p++;
+
+      if (end_of_line)
+      {
+          if (c == '\r')
+            p++;
+          line_read_done= 1;
+          break;
+      }
+    }
+
+    bytes_parsed += (p - linebuf);
+    cur_pos += bytes_read;
+  }
+
+  /* Initialize the NULL indicator flags in the record. */
+  memset(buf,0,table->s->null_bytes); 
+
+  /* 
+    The parsed line may not have had the values of all of the fields.
+    Set the remaining fields to their default values.
+   */ 
   for (; *field; field++)
   {
     (*field)->set_default();
   }
 
-  DBUG_RETURN(HA_ERR_END_OF_FILE);
-  //DBUG_RETURN(0);
+  /* Move the cursor to the next record. */ 
+  pos += bytes_parsed;
+
+  DBUG_RETURN(0);
 }
 
 /**

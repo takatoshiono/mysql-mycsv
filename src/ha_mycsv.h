@@ -31,6 +31,8 @@
   /sql/handler.h and /storage/mycsv/ha_mycsv.cc
 */
 
+#include <sys/types.h>
+
 #include "my_global.h"                   /* ulonglong */
 #include "thr_lock.h"                    /* THR_LOCK, THR_LOCK_DATA */
 #include "handler.h"                     /* handler */
@@ -68,6 +70,9 @@ class ha_mycsv: public handler
   THR_LOCK_DATA lock;      ///< MySQL lock
   Example_share *share;    ///< Shared lock info
   Example_share *get_share(); ///< Get the share
+
+  /* Buffer for parsing the field values. */
+  String field_buf;
 
 protected:
   CSV_INFO* file;
