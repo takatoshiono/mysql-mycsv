@@ -638,16 +638,26 @@ int ha_mycsv::fetch_line(uchar *buf)
 
   field_buf.length(0);
 
+  /* Avoid asserts in ::store() for columns that are not going to be updated */
+  my_bitmap_map* org_bitmap= dbug_tmp_use_all_columns(table, table->write_set);
+
+  /* Initialize the NULL indicator flags in the record. */
+  memset(buf,0,table->s->null_bytes);
+
   for (; !line_read_done; )
   {
     uchar linebuf[CSV_READ_BLOCK_SIZE];
 
     size_t bytes_read= my_pread(file->fd, linebuf, sizeof(linebuf), cur_pos, MYF(MY_WME));
 
-    if (bytes_read == MY_FILE_ERROR)
-        DBUG_RETURN(HA_ERR_END_OF_FILE);
-    if (!bytes_read)
-        DBUG_RETURN(HA_ERR_END_OF_FILE);
+    if (bytes_read == MY_FILE_ERROR) {
+      dbug_tmp_restore_column_map(table->write_set, org_bitmap);
+      DBUG_RETURN(HA_ERR_END_OF_FILE);
+    }
+    if (!bytes_read) {
+      dbug_tmp_restore_column_map(table->write_set, org_bitmap);
+      DBUG_RETURN(HA_ERR_END_OF_FILE);
+    }
 
     uchar* p= linebuf;
     uchar* buf_end= linebuf + bytes_read;
@@ -696,9 +706,6 @@ int ha_mycsv::fetch_line(uchar *buf)
     bytes_parsed += (p - linebuf);
     cur_pos += bytes_read;
   }
-
-  /* Initialize the NULL indicator flags in the record. */
-  memset(buf,0,table->s->null_bytes); 
 
   /* 
     The parsed line may not have had the values of all of the fields.
