@@ -719,6 +719,7 @@ int ha_mycsv::fetch_line(uchar *buf)
   /* Move the cursor to the next record. */ 
   pos += bytes_parsed;
 
+  dbug_tmp_restore_column_map(table->write_set, org_bitmap);
   DBUG_RETURN(0);
 }
 
