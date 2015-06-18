@@ -607,7 +607,7 @@ int ha_mycsv::rnd_next(uchar *buf)
 
   ha_statistic_increment(&SSV::ha_read_rnd_next_count);
 
-  int rc = fetch_line(buf);
+  int rc= fetch_line(buf);
 
   if (!rc)
     stats.records++;
@@ -627,7 +627,7 @@ int ha_mycsv::fetch_line(uchar *buf)
      table field pointers to store the parsed data in the right
      place and the right format.
    */  
-  Field** field = table->field;
+  Field** field= table->field;
 
   /* How many bytes we have seen so far in this line. */
   int bytes_parsed= 0;
