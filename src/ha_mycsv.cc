@@ -307,7 +307,7 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
   // MY_WME (include/my_sys.h) - Write message on error
   file= (CSV_INFO*)my_malloc(sizeof(CSV_INFO), MYF(MY_WME));
   if (!file)
-      DBUG_RETURN(1);
+    DBUG_RETURN(1);
 
   // fn_format (mysys/mf_format.c) - Formats a filename
   // see also include/my_sys.h
@@ -317,10 +317,10 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
   file->fd= my_open(file->filename, mode, MYF(0));
   if (file->fd < 0)
   {
-      // my_error (mysys/my_error.c) - Fill in and print a previously registered error message
-      int error= my_errno;
-      close();
-      DBUG_RETURN(error);
+    // my_error (mysys/my_error.c) - Fill in and print a previously registered error message
+    int error= my_errno;
+    close();
+    DBUG_RETURN(error);
   }
 
   pos= 0;
@@ -350,10 +350,10 @@ int ha_mycsv::close(void)
 
   if (file)
   {
-      if (file->fd >= 0)
-        my_close(file->fd, MYF(0));
-      my_free(file);
-      file= NULL;
+    if (file->fd >= 0)
+      my_close(file->fd, MYF(0));
+    my_free(file);
+    file= NULL;
   }
 
   DBUG_RETURN(0);
@@ -695,10 +695,10 @@ int ha_mycsv::fetch_line(uchar *buf)
 
       if (end_of_line)
       {
-          if (c == '\r')
-            p++;
-          line_read_done= 1;
-          break;
+        if (c == '\r')
+          p++;
+        line_read_done= 1;
+        break;
       }
     }
 
