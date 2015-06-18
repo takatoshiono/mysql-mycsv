@@ -348,7 +348,6 @@ int ha_mycsv::close(void)
 {
   DBUG_ENTER("ha_mycsv::close");
 
-  // TODO 実装する
   if (file)
   {
       if (file->fd >= 0)
