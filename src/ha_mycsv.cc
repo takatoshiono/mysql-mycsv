@@ -311,7 +311,7 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
 
   // fn_format (mysys/mf_format.c) - Formats a filename
   // see also include/my_sys.h
-  fn_format(file->filename, name, "", ".csv", MY_REPLACE_EXT | MY_UNPACK_FILENAME);
+  fn_format(file->filename, name, "", ha_mycsv_exts[0], MY_REPLACE_EXT | MY_UNPACK_FILENAME);
 
   // my_open (mysys/my_open.c) - Open a file
   file->fd= my_open(file->filename, mode, MYF(0));
