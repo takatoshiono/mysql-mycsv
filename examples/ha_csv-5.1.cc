@@ -97,7 +97,6 @@ int ha_csv::open(const char *name, int mode, uint test_if_locked)
   /* Translate the name of the name into the data file name. */   
   fn_format(file->fname, name, "", ".csv", 
      MY_REPLACE_EXT|MY_UNPACK_FILENAME);
-  DBUG_PRINT("info", ("fname:%s", file->fname));
   
   /* 
      Open the file, and save the file handle id in the data
