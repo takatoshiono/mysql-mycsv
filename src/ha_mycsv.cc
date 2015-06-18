@@ -641,7 +641,7 @@ int ha_mycsv::fetch_line(uchar *buf)
   my_bitmap_map* org_bitmap= dbug_tmp_use_all_columns(table, table->write_set);
 
   /* Initialize the NULL indicator flags in the record. */
-  memset(buf,0,table->s->null_bytes);
+  memset(buf, 0, table->s->null_bytes);
 
   for (; !line_read_done; )
   {
