@@ -649,11 +649,7 @@ int ha_mycsv::fetch_line(uchar *buf)
 
     size_t bytes_read= my_pread(file->fd, linebuf, sizeof(linebuf), cur_pos, MYF(MY_WME));
 
-    if (bytes_read == MY_FILE_ERROR) {
-      dbug_tmp_restore_column_map(table->write_set, org_bitmap);
-      DBUG_RETURN(HA_ERR_END_OF_FILE);
-    }
-    if (!bytes_read) {
+    if (!bytes_read || bytes_read == MY_FILE_ERROR) {
       dbug_tmp_restore_column_map(table->write_set, org_bitmap);
       DBUG_RETURN(HA_ERR_END_OF_FILE);
     }
