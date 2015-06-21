@@ -13,8 +13,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-SET(MYCSV_PLUGIN_DYNAMIC "ha_mycsv")
-SET(MYCSV_SOURCES ha_mycsv.cc)
-MYSQL_ADD_PLUGIN(mycsv ${MYCSV_SOURCES} STORAGE_ENGINE MODULE_ONLY)
-ENABLE_TESTING()
-ADD_SUBDIRECTORY(unittest)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/zlib
+                    ${CMAKE_SOURCE_DIR}/sql
+                    ${CMAKE_SOURCE_DIR}/regex
+                    ${CMAKE_SOURCE_DIR}/extra/yassl/include
+                    ${CMAKE_SOURCE_DIR}/unittest/mytap)
+
+SET(TESTS example)
+FOREACH(test ${TESTS})
+  ADD_EXECUTABLE(${test}-t ${test}-t.cc)
+  TARGET_LINK_LIBRARIES(${test}-t mytap)
+  ADD_TEST(${test} ${test}-t)
+ENDFOREACH()

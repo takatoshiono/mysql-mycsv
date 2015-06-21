@@ -31,10 +31,14 @@
   /sql/handler.h and /storage/mycsv/ha_mycsv.cc
 */
 
+#include <sys/types.h>
+
 #include "my_global.h"                   /* ulonglong */
 #include "thr_lock.h"                    /* THR_LOCK, THR_LOCK_DATA */
 #include "handler.h"                     /* handler */
 #include "my_base.h"                     /* ha_rows */
+
+#define CSV_READ_BLOCK_SIZE 512
 
 /** @brief
   Example_share is a class that will be shared among all open handlers.
@@ -52,6 +56,12 @@ public:
   }
 };
 
+struct CSV_INFO
+{
+  char filename[FN_REFLEN+1];
+  int fd;
+};
+
 /** @brief
   Class definition for the storage engine
 */
@@ -61,11 +71,22 @@ class ha_mycsv: public handler
   Example_share *share;    ///< Shared lock info
   Example_share *get_share(); ///< Get the share
 
+  /* Buffer for parsing the field values. */
+  String field_buf;
+
+protected:
+  CSV_INFO* file;
+
+  /* Table scan cursor. */
+  my_off_t pos;
+
 public:
   ha_mycsv(handlerton *hton, TABLE_SHARE *table_arg);
   ~ha_mycsv()
   {
   }
+
+  int fetch_line(uchar* buf);
 
   /** @brief
     The name that will be used for display purposes.

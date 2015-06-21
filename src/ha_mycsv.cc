@@ -209,6 +209,7 @@ ha_mycsv::ha_mycsv(handlerton *hton, TABLE_SHARE *table_arg)
 */
 
 static const char *ha_mycsv_exts[] = {
+  ".csv",
   NullS
 };
 
@@ -301,6 +302,29 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
     DBUG_RETURN(1);
   thr_lock_data_init(&share->lock,&lock,NULL);
 
+  // NOTE
+  // MYF (include/my_global.h) - Macros for converting *constants* to the right type
+  // MY_WME (include/my_sys.h) - Write message on error
+  file= (CSV_INFO*)my_malloc(sizeof(CSV_INFO), MYF(MY_WME));
+  if (!file)
+    DBUG_RETURN(1);
+
+  // fn_format (mysys/mf_format.c) - Formats a filename
+  // see also include/my_sys.h
+  fn_format(file->filename, name, "", ha_mycsv_exts[0], MY_REPLACE_EXT | MY_UNPACK_FILENAME);
+
+  // my_open (mysys/my_open.c) - Open a file
+  file->fd= my_open(file->filename, mode, MYF(0));
+  if (file->fd < 0)
+  {
+    // my_error (mysys/my_error.c) - Fill in and print a previously registered error message
+    int error= my_errno;
+    close();
+    DBUG_RETURN(error);
+  }
+
+  pos= 0;
+
   DBUG_RETURN(0);
 }
 
@@ -323,6 +347,15 @@ int ha_mycsv::open(const char *name, int mode, uint test_if_locked)
 int ha_mycsv::close(void)
 {
   DBUG_ENTER("ha_mycsv::close");
+
+  if (file)
+  {
+    if (file->fd >= 0)
+      my_close(file->fd, MYF(0));
+    my_free(file);
+    file= NULL;
+  }
+
   DBUG_RETURN(0);
 }
 
@@ -539,6 +572,10 @@ int ha_mycsv::index_last(uchar *buf)
 int ha_mycsv::rnd_init(bool scan)
 {
   DBUG_ENTER("ha_mycsv::rnd_init");
+
+  pos= 0;
+  stats.records= 0;
+
   DBUG_RETURN(0);
 }
 
@@ -565,15 +602,121 @@ int ha_mycsv::rnd_end()
 */
 int ha_mycsv::rnd_next(uchar *buf)
 {
-  int rc;
   DBUG_ENTER("ha_mycsv::rnd_next");
-  MYSQL_READ_ROW_START(table_share->db.str, table_share->table_name.str,
-                       TRUE);
-  rc= HA_ERR_END_OF_FILE;
+  MYSQL_READ_ROW_START(table_share->db.str, table_share->table_name.str, TRUE);
+
+  ha_statistic_increment(&SSV::ha_read_rnd_next_count);
+
+  int rc= fetch_line(buf);
+
+  if (!rc)
+    stats.records++;
+
   MYSQL_READ_ROW_DONE(rc);
   DBUG_RETURN(rc);
 }
 
+int ha_mycsv::fetch_line(uchar *buf)
+{
+  DBUG_ENTER("ha_mycsv::fetch_line");
+
+  my_off_t cur_pos= pos;
+
+  /* 
+     We will use this to iterate through the array of 
+     table field pointers to store the parsed data in the right
+     place and the right format.
+   */  
+  Field** field= table->field;
+
+  /* How many bytes we have seen so far in this line. */
+  int bytes_parsed= 0;
+
+  /* Loop breaker flag. */
+  int line_read_done= 0;
+
+  field_buf.length(0);
+
+  /* Avoid asserts in ::store() for columns that are not going to be updated */
+  my_bitmap_map* org_bitmap= dbug_tmp_use_all_columns(table, table->write_set);
+
+  /* Initialize the NULL indicator flags in the record. */
+  memset(buf, 0, table->s->null_bytes);
+
+  for (; !line_read_done; )
+  {
+    uchar linebuf[CSV_READ_BLOCK_SIZE];
+
+    size_t bytes_read= my_pread(file->fd, linebuf, sizeof(linebuf), cur_pos, MYF(MY_WME));
+
+    if (!bytes_read || bytes_read == MY_FILE_ERROR) {
+      dbug_tmp_restore_column_map(table->write_set, org_bitmap);
+      DBUG_RETURN(HA_ERR_END_OF_FILE);
+    }
+
+    uchar* p= linebuf;
+    uchar* buf_end= linebuf + bytes_read;
+
+    for (; p < buf_end; )
+    {
+      uchar c= *p;
+      int end_of_field= 0;
+      int end_of_line= 0;
+
+      switch (c)
+      {
+        case ',':
+          end_of_field= 1;
+          break;
+
+        case '\r':
+        case '\n':
+          end_of_line= 1;
+          end_of_field= 1;
+          break;
+
+        default:
+          field_buf.append(c);
+          break;
+      }
+
+      if (end_of_field && *field) 
+      {
+        (*field)->store(field_buf.ptr(), field_buf.length(), field_buf.charset(), CHECK_FIELD_WARN);
+        field++;
+        field_buf.length(0);
+      }
+
+      p++;
+
+      if (end_of_line)
+      {
+        if (c == '\r')
+          p++;
+        line_read_done= 1;
+        break;
+      }
+    }
+
+    bytes_parsed += (p - linebuf);
+    cur_pos += bytes_read;
+  }
+
+  /* 
+    The parsed line may not have had the values of all of the fields.
+    Set the remaining fields to their default values.
+   */ 
+  for (; *field; field++)
+  {
+    (*field)->set_default();
+  }
+
+  /* Move the cursor to the next record. */ 
+  pos += bytes_parsed;
+
+  dbug_tmp_restore_column_map(table->write_set, org_bitmap);
+  DBUG_RETURN(0);
+}
 
 /**
   @brief
