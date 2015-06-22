@@ -7,7 +7,12 @@ Only read(select) is available.
 
 ## Install
 
-* git clone git@github.com:takatoshiono/mysql-mycsv.git
+* checkout source files
+
+```
+git clone git@github.com:takatoshiono/mysql-mycsv.git
+```
+
 * copy files under the `src` directory to the `storage/mycsv/` directory of the MySQL source tree.
 
 ```
@@ -81,6 +86,8 @@ mysql> CREATE TABLE mycsv_test (id int NOT NULL, col1 int NOT NULL) ENGINE=MYCSV
 
 * create file by yourself
 
+MYCSV storage engine cannot write to the table.
+
 ```
 $ echo 100,200 > /usr/local/mysql/data/test/mycsv_test.csv
 ```
@@ -101,4 +108,3 @@ mysql> select * from mycsv_test ;
 
 * [MySQL Internals Manual :: 22 Writing a Custom Storage Engine](https://dev.mysql.com/doc/internals/en/custom-engine.html)
 * [詳解MySQL](http://www.oreilly.co.jp/books/9784873113432/)
-
