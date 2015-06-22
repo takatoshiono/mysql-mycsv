@@ -7,22 +7,49 @@ Only read(select) is available.
 
 ## Install
 
-1. git clone git@github.com:takatoshiono/mysql-mycsv.git
-2. copy files under the `src` directory to the `storage/mycsv/` directory of the MySQL source tree.
-  * e.g. ```cp -r `ghq list -p mysql-mycsv`/src/ mysql-5.6.23/storage/mycsv/```
-3. build MySQL
-  * e.g. `cmake . && make`
-4. make install
-5. now installed to `/usr/local/mysql`
+* git clone git@github.com:takatoshiono/mysql-mycsv.git
+* copy files under the `src` directory to the `storage/mycsv/` directory of the MySQL source tree.
+
+```
+$ cp -r `ghq list -p mysql-mycsv`/src/ mysql-5.6.23/storage/mycsv/
+```
+
+* build MySQL
+
+```
+$ cmake . && make
+```
+
+or debug mode.
+
+```
+$ cmake -DWITH_DEBUG=1 . && make
+```
+
+* make install
+* now installed to `/usr/local/mysql`
 
 ### Install plugin
 
-1. run mysql
-  * e.g. `bin/mysqld --port=13306`
-2. mysql -uroot -P13306
-3. install plugin
-  * e.g. ```mysql> install plugin MYCSV soname 'ha_mycsv.so';```
-4. show storage engine
+* run mysql
+
+```
+$ bin/mysqld --port=13306
+```
+
+* login to mysql
+
+```
+$ mysql -uroot -P13306
+```
+
+* install plugin
+
+```
+mysql> install plugin MYCSV soname 'ha_mycsv.so';
+```
+
+* show storage engine
 
 ```
 mysql> show storage engines ;
@@ -45,12 +72,20 @@ mysql> show storage engines ;
 
 ### SELECT * FROM ...
 
-1. create table
-  * `mysql> use test`
-  * ```mysql> CREATE TABLE mycsv_test (id int NOT NULL, col1 int NOT NULL) ENGINE=MYCSV```
-2. create file by yourself
-  * ```echo 100,200 > /usr/local/mysql/data/test/mycsv_test.csv```
-3. select
+* create table
+
+```
+mysql> use test
+mysql> CREATE TABLE mycsv_test (id int NOT NULL, col1 int NOT NULL) ENGINE=MYCSV
+```
+
+* create file by yourself
+
+```
+$ echo 100,200 > /usr/local/mysql/data/test/mycsv_test.csv
+```
+
+* select
 
 ```
 mysql> select * from mycsv_test ;
